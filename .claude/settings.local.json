@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where dbt *)",
+      "Bash(pip show *)",
+      "Bash(python -m pip list)",
+      "Bash(python -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(python -m pip install --force-reinstall --no-deps dbt-core dbt-duckdb)"
+    ]
+  }
+}

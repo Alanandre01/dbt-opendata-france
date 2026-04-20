@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: sirene
+    meta:
+      external_location: "read_csv_auto('{{ env_var(\"DBT_CSV_PATH\", \"../seeds/base-sirene-nantes.csv\") }}', delim=';', all_varchar=true)"
+    tables:
+      - name: base_sirene_nantes
