@@ -2,7 +2,18 @@ version: 2
 
 sources:
   - name: sirene
+    description: "Données brutes chargées depuis data.gouv.fr"
     meta:
-      external_location: "read_csv_auto('{{ env_var(\"DBT_CSV_PATH\", \"../seeds/base-sirene-nantes.csv\") }}', delim=';', all_varchar=true)"
+      external_location: "read_csv_auto('{{ env_var(\"DBT_CSV_PATH\", \"seeds/base-sirene-nantes.csv\") }}', delim=';', all_varchar=true)"
     tables:
       - name: base_sirene_nantes
+        description: "Base des établissements SIRENE (Nantes)"
+        columns:
+          - name: siren
+            description: "Numéro SIREN de l'entreprise (9 chiffres)"
+          - name: siret
+            description: "Numéro SIRET de l'établissement (14 chiffres)"
+          - name: codePostalEtablissement
+            description: "Code postal de l'établissement"
+          - name: libelleCommuneEtablissement
+            description: "Nom de la commune de l'établissement"
