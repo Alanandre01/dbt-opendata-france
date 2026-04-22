@@ -1,0 +1,110 @@
+version: 2
+
+models:
+  - name: stg_communes
+    description: "Établissements SIRENE nettoyés — une ligne par établissement (SIRET)"
+    columns:
+      - name: siret
+        description: "Identifiant unique de l'établissement (14 chiffres)"
+        tests:
+          - not_null
+          - unique
+
+      - name: siren
+        description: "Identifiant de l'entreprise (9 chiffres)"
+        tests:
+          - not_null
+
+      - name: nic
+        description: "Numéro interne de classement de l'établissement"
+        tests:
+          - not_null
+
+      - name: code_commune
+        description: "Code INSEE de la commune"
+        tests:
+          - not_null
+
+      - name: nom_commune
+        description: "Nom de la commune"
+        tests:
+          - not_null
+
+      - name: etat_administratif
+        description: "État de l'établissement"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Actif', 'Fermé']
+
+      - name: est_employeur
+        description: "Indique si l'établissement est employeur (Oui / Non)"
+        tests:
+          - accepted_values:
+              values: ['Oui', 'Non']
+
+      - name: code_departement
+        description: "Code du département"
+        tests:
+          - not_null
+
+      - name: nom_region
+        description: "Nom de la région administrative"
+        tests:
+          - not_null
+
+      - name: categorie_entreprise
+        description: "Taille de l'entreprise selon la loi LME (peut être nulle pour les micro-entreprises)"
+        tests:
+          - accepted_values:
+              values: ['PME', 'ETI', 'GE']
+
+  - name: stg_communes_enriched
+    description: "Agrégation par commune avec métriques et catégorie économique"
+    columns:
+      - name: code_commune
+        description: "Code INSEE de la commune (clé unique après agrégation)"
+        tests:
+          - not_null
+          - unique
+
+      - name: nom_commune
+        description: "Nom de la commune"
+        tests:
+          - not_null
+
+      - name: nom_region
+        description: "Nom de la région administrative"
+        tests:
+          - not_null
+
+      - name: code_departement
+        description: "Code du département"
+        tests:
+          - not_null
+
+      - name: nb_etablissements
+        description: "Nombre total d'établissements dans la commune"
+        tests:
+          - not_null
+
+      - name: nb_actifs
+        description: "Nombre d'établissements avec etat_administratif = 'Actif'"
+        tests:
+          - not_null
+
+      - name: nb_employeurs
+        description: "Nombre d'établissements déclarés employeurs"
+        tests:
+          - not_null
+
+      - name: categorie_economique
+        description: "Catégorie calculée selon le volume d'établissements"
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'pôle économique'
+                - 'commune active'
+                - 'commune intermédiaire'
+                - 'petite commune'

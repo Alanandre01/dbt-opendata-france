@@ -18,7 +18,8 @@ cleaned AS (
         TRIM("Date de fermeture de l'établissement")        AS date_fermeture,
         TRIM("Code du département de l'établissement")      AS code_departement,
         TRIM("Région de l'établissement")                   AS nom_region,
-        TRIM("Géolocalisation de l'établissement")          AS geolocalisation
+        TRIM("Géolocalisation de l'établissement")          AS geolocalisation,
+        TRIM("Catégorie de l'entreprise")                   AS categorie_entreprise
     FROM source
     WHERE TRIM("SIRET") IS NOT NULL
       AND TRIM("SIRET") != ''
