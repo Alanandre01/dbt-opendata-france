@@ -9,8 +9,8 @@ agregation AS (
         nom_region,
         code_departement,
         COUNT(*)                                            AS nb_etablissements,
-        COUNT(*) FILTER (WHERE etat_administratif = 'A')   AS nb_actifs,
-        COUNT(*) FILTER (WHERE est_employeur = 'O')        AS nb_employeurs
+        COUNT(*) FILTER (WHERE etat_administratif = 'Actif')   AS nb_actifs,
+        COUNT(*) FILTER (WHERE est_employeur = 'Oui')        AS nb_employeurs
     FROM communes
     GROUP BY code_commune, nom_commune, nom_region, code_departement
 )
