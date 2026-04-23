@@ -2,104 +2,119 @@ version: 2
 
 models:
   - name: stg_communes
-    description: "Établissements SIRENE nettoyés — une ligne par établissement (SIRET)"
+    description: "Établissements SIRENE nettoyés issus du CSV brut. Une ligne par établissement (SIRET)."
     columns:
       - name: siret
-        description: "Identifiant unique de l'établissement (14 chiffres)"
+        description: "Identifiant unique de l'établissement, 14 chiffres (SIREN + NIC)."
         tests:
           - not_null
           - unique
 
       - name: siren
-        description: "Identifiant de l'entreprise (9 chiffres)"
+        description: "Identifiant de l'entreprise à laquelle appartient l'établissement, 9 chiffres."
         tests:
           - not_null
 
       - name: nic
-        description: "Numéro interne de classement de l'établissement"
+        description: "Numéro interne de classement qui distingue les établissements d'une même entreprise, 5 chiffres."
         tests:
           - not_null
 
       - name: code_commune
-        description: "Code INSEE de la commune"
+        description: "Code INSEE de la commune où est situé l'établissement, 5 caractères (ex: 44109 pour Nantes)."
         tests:
           - not_null
 
       - name: nom_commune
-        description: "Nom de la commune"
+        description: "Nom de la commune de l'établissement tel qu'il figure dans la base SIRENE."
         tests:
           - not_null
 
+      - name: code_postal
+        description: "Code postal de l'établissement, 5 chiffres. Peut différer du code commune."
+
       - name: etat_administratif
-        description: "État de l'établissement"
+        description: "État courant de l'établissement : Actif (ouvert) ou Fermé (cessé d'activité)."
         tests:
           - not_null
           - accepted_values:
               values: ['Actif', 'Fermé']
 
+      - name: activite_principale
+        description: "Code NAF de l'activité principale exercée par l'établissement (ex: 47.11F pour supermarchés)."
+
       - name: est_employeur
-        description: "Indique si l'établissement est employeur (Oui / Non)"
+        description: "Indique si l'établissement a déclaré au moins un salarié : Oui ou Non. Null si non renseigné."
         tests:
           - accepted_values:
               values: ['Oui', 'Non']
 
+      - name: date_creation
+        description: "Date de création de l'établissement au format JJ/MM/AAAA."
+
+      - name: date_fermeture
+        description: "Date de fermeture de l'établissement au format JJ/MM/AAAA. Null si l'établissement est encore actif."
+
       - name: code_departement
-        description: "Code du département"
+        description: "Code INSEE du département de l'établissement, 2 chiffres (ex: 44 pour Loire-Atlantique)."
         tests:
           - not_null
 
       - name: nom_region
-        description: "Nom de la région administrative"
+        description: "Nom de la région administrative de l'établissement (toujours Pays de la Loire dans ce dataset)."
         tests:
           - not_null
 
+      - name: geolocalisation
+        description: "Coordonnées GPS de l'établissement au format 'latitude, longitude'. Null si non géolocalisé."
+
       - name: categorie_entreprise
-        description: "Taille de l'entreprise selon la loi LME (peut être nulle pour les micro-entreprises)"
+        description: "Taille de l'unité légale selon la loi LME : PME, ETI ou GE. Null pour les micro-entreprises non classées."
         tests:
           - accepted_values:
               values: ['PME', 'ETI', 'GE']
 
   - name: stg_communes_enriched
-    description: "Agrégation par commune avec métriques et catégorie économique"
+    description: "Métriques agrégées par commune à partir de stg_communes. Une ligne par code commune."
     columns:
       - name: code_commune
-        description: "Code INSEE de la commune (clé unique après agrégation)"
+        description: "Code INSEE de la commune, 5 caractères. Clé primaire de ce modèle."
         tests:
           - not_null
           - unique
 
       - name: nom_commune
-        description: "Nom de la commune"
+        description: "Nom de la commune, issu du MAX() sur les établissements de la commune."
         tests:
           - not_null
 
       - name: nom_region
-        description: "Nom de la région administrative"
+        description: "Nom de la région administrative de la commune."
         tests:
           - not_null
 
       - name: code_departement
-        description: "Code du département"
+        description: "Code INSEE du département de la commune, 2 chiffres."
         tests:
           - not_null
 
       - name: nb_etablissements
-        description: "Nombre total d'établissements dans la commune"
+        description: "Nombre total d'établissements recensés dans la commune, tous états confondus."
         tests:
           - not_null
 
       - name: nb_actifs
-        description: "Nombre d'établissements avec etat_administratif = 'Actif'"
+        description: "Nombre d'établissements dont l'état administratif est 'Actif' dans la commune."
         tests:
           - not_null
 
       - name: nb_employeurs
-        description: "Nombre d'établissements déclarés employeurs"
+        description: "Nombre d'établissements déclarés employeurs (est_employeur = 'Oui') dans la commune."
         tests:
           - not_null
 
       - name: categorie_economique
-        description: "Catégorie calculée selon le volume d'établissements"
+        description: "Catégorie de dynamisme économique calculée selon nb_etablissements : pôle économique (>1000), commune active (>200), commune intermédiaire (>50), petite commune (<=50)."
         tests:
           - not_null
           - accepted_values:

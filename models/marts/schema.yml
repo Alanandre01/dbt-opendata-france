@@ -2,29 +2,31 @@ version: 2
 
 models:
   - name: mart_stats_regions
-    description: >
-      Statistiques agrégées par commune à partir des données SIRENE.
-      Inclut le nombre total d'établissements, d'établissements actifs
-      et d'employeurs pour chaque commune.
+    description: "Statistiques finales par commune, matérialisées en table. Une ligne par commune, triée par volume décroissant d'établissements."
     columns:
       - name: nom_commune
-        description: "Nom de la commune"
+        description: "Nom de la commune. Clé primaire de ce modèle."
         tests:
           - not_null
           - unique
+
       - name: nom_region
-        description: "Nom de la région administrative de la commune"
+        description: "Nom de la région administrative de la commune."
         tests:
           - not_null
+
       - name: code_departement
-        description: "Code du département de la commune"
+        description: "Code INSEE du département de la commune, 2 chiffres."
         tests:
           - not_null
+
       - name: nb_etablissements_total
-        description: "Nombre total d'établissements dans la commune"
+        description: "Nombre total d'établissements dans la commune, tous états confondus."
         tests:
           - not_null
+
       - name: nb_actifs_total
-        description: "Nombre d'établissements avec un état administratif actif (etat_administratif = 'Actif')"
+        description: "Nombre d'établissements dont l'état administratif est 'Actif' dans la commune."
+
       - name: nb_employeurs_total
-        description: "Nombre d'établissements déclarés employeurs (est_employeur = 'Oui')"
+        description: "Nombre d'établissements déclarés employeurs dans la commune."
