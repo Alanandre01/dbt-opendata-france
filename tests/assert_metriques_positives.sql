@@ -7,7 +7,7 @@ SELECT
     nb_etablissements,
     nb_actifs,
     nb_employeurs
-FROM {{ ref('stg_communes_enriched') }}
+FROM {{ ref('int_communes_enrichies') }}
 WHERE
     nb_etablissements < 0
     OR nb_actifs < 0

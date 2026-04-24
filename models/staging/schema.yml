@@ -74,52 +74,59 @@ models:
           - accepted_values:
               values: ['PME', 'ETI', 'GE']
 
-  - name: stg_communes_enriched
-    description: "Métriques agrégées par commune à partir de stg_communes. Une ligne par code commune."
+  - name: stg_emploi
+    description: "Demandeurs d'emploi en fin de mois (DEFM) par commune, nettoyés depuis la source DARES. Une ligne par combinaison période / commune / sexe / tranche d'âge."
     columns:
-      - name: code_commune
-        description: "Code INSEE de la commune, 5 caractères. Clé primaire de ce modèle."
+      - name: periode
+        description: "Trimestre de référence au format AAAA-TN (ex : 2024-T4)."
         tests:
           - not_null
-          - unique
+
+      - name: code_commune
+        description: "Code INSEE de la commune, 5 caractères."
+        tests:
+          - not_null
 
       - name: nom_commune
-        description: "Nom de la commune, issu du MAX() sur les établissements de la commune."
-        tests:
-          - not_null
-
-      - name: nom_region
-        description: "Nom de la région administrative de la commune."
+        description: "Nom de la commune."
         tests:
           - not_null
 
       - name: code_departement
-        description: "Code INSEE du département de la commune, 2 chiffres."
+        description: "Code INSEE du département, 2 caractères."
         tests:
           - not_null
 
-      - name: nb_etablissements
-        description: "Nombre total d'établissements recensés dans la commune, tous états confondus."
-        tests:
-          - not_null
+      - name: nom_departement
+        description: "Nom du département."
 
-      - name: nb_actifs
-        description: "Nombre d'établissements dont l'état administratif est 'Actif' dans la commune."
-        tests:
-          - not_null
+      - name: code_region
+        description: "Code INSEE de la région."
 
-      - name: nb_employeurs
-        description: "Nombre d'établissements déclarés employeurs (est_employeur = 'Oui') dans la commune."
-        tests:
-          - not_null
+      - name: nom_region
+        description: "Nom de la région administrative."
 
-      - name: categorie_economique
-        description: "Catégorie de dynamisme économique calculée selon nb_etablissements : pôle économique (>1000), commune active (>200), commune intermédiaire (>50), petite commune (<=50)."
+      - name: sexe
+        description: "Sexe des demandeurs : Total, Hommes ou Femmes."
         tests:
           - not_null
           - accepted_values:
-              values:
-                - 'pôle économique'
-                - 'commune active'
-                - 'commune intermédiaire'
-                - 'petite commune'
+              values: ['Total', 'Hommes', 'Femmes']
+
+      - name: tranche_age
+        description: "Tranche d'âge : Total, Moins de 25 ans, De 25 à 49 ans, 50 ans et plus."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Total', 'Moins de 25 ans', 'De 25 à 49 ans', '50 ans et plus']
+
+      - name: categorie_demande
+        description: "Catégorie de demande d'emploi. Toujours ABC (catégories A, B et C cumulées)."
+
+      - name: type_donnees
+        description: "Mode de calcul de la série. Toujours Brutes (données non désaisonnalisées)."
+
+      - name: nb_demandeurs_emploi
+        description: "Nombre de demandeurs d'emploi inscrits en fin de mois."
+        tests:
+          - not_null

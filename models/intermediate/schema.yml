@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: int_communes_enrichies
+    description: "Jointure entre les métriques SIRENE par commune et les demandeurs d'emploi DEFM. Une ligne par commune × période (Total / Total)."
+    columns:
+      - name: code_commune
+        description: "Code INSEE de la commune, 5 caractères."
+        tests:
+          - not_null
+
+      - name: nom_commune
+        description: "Nom de la commune."
+        tests:
+          - not_null
+
+      - name: nom_region
+        description: "Nom de la région administrative."
+        tests:
+          - not_null
+
+      - name: code_departement
+        description: "Code INSEE du département, 2 chiffres."
+        tests:
+          - not_null
+
+      - name: nb_etablissements
+        description: "Nombre total d'établissements SIRENE dans la commune."
+        tests:
+          - not_null
+
+      - name: nb_actifs
+        description: "Nombre d'établissements actifs dans la commune."
+        tests:
+          - not_null
+
+      - name: nb_employeurs
+        description: "Nombre d'établissements déclarés employeurs dans la commune."
+        tests:
+          - not_null
+
+      - name: categorie_economique
+        description: "Catégorie de dynamisme économique : pôle économique, commune active, commune intermédiaire, petite commune."
+        tests:
+          - not_null
+
+      - name: periode
+        description: "Trimestre DEFM au format AAAA-TN."
+
+      - name: annee
+        description: "Année extraite de la période."
+
+      - name: trimestre
+        description: "Numéro du trimestre (1 à 4)."
+
+      - name: nb_demandeurs_emploi
+        description: "Nombre de demandeurs d'emploi (catégorie ABC, sexe Total, âge Total) en fin de mois."
+
+      - name: taux_demandeurs_pour_cent
+        description: "Ratio nb_demandeurs_emploi / nb_etablissements × 100."

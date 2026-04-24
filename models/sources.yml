@@ -17,3 +17,11 @@ sources:
             description: "Code postal de l'établissement"
           - name: libelleCommuneEtablissement
             description: "Nom de la commune de l'établissement"
+
+  - name: defm
+    description: "Données DARES chargées depuis data.gouv.fr"
+    meta:
+      external_location: "read_csv_auto('seeds/demandeurs_emploi_communes.csv', delim=';', all_varchar=true)"
+    tables:
+      - name: demandeurs_emploi_communes
+        description: "Demandeurs d'emploi en fin de mois (DEFM) par commune, catégorie ABC, T4 2015 → T4 2024"

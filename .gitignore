@@ -209,3 +209,7 @@ __marimo__/
 seeds/
 .claude/
 CLAUDE.md
+
+# dbt
+dbt_packages/
+target/

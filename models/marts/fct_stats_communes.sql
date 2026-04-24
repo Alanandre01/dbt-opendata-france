@@ -2,7 +2,7 @@
 
 WITH communes_actives AS (
     SELECT *
-    FROM {{ ref('stg_communes_enriched') }}
+    FROM {{ ref('int_communes_enrichies') }}
     WHERE nb_etablissements IS NOT NULL
       AND nb_etablissements > 0
 ),

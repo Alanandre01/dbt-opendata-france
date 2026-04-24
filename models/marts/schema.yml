@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: mart_stats_regions
+  - name: fct_stats_communes
     description: "Statistiques finales par commune, matérialisées en table. Une ligne par commune, triée par volume décroissant d'établissements."
     columns:
       - name: nom_commune

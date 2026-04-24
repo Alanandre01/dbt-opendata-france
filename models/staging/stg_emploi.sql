@@ -1,0 +1,39 @@
+with source as (
+
+    select * from {{ source('defm', 'demandeurs_emploi_communes') }}
+
+),
+
+renamed as (
+
+    select
+        -- période (format : AAAA-TN, ex : 2024-T4)
+        "Date"                                                      as periode,
+        cast(left("Date", 4) as integer)                            as annee,
+        cast(right("Date", 1) as integer)                           as trimestre,
+
+        -- localisation
+        "Code commune"                                              as code_commune,
+        "Commune"                                                   as nom_commune,
+        "Code département"                                          as code_departement,
+        "Département"                                               as nom_departement,
+        "Code région"                                               as code_region,
+        "Région"                                                    as nom_region,
+
+        -- dimensions analytiques
+        "Sexe"                                                      as sexe,
+        "Tranche d'âge"                                             as tranche_age,
+        "Catégorie"                                                 as categorie_demande,
+        "Type de données"                                           as type_donnees,
+
+        -- métrique
+        cast("Nombre de demandeurs d'emploi" as integer)            as nb_demandeurs_emploi,
+
+        -- métadonnées
+        current_timestamp                                           as _loaded_at
+
+    from source
+
+)
+
+select * from renamed
