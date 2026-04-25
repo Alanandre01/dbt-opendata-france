@@ -30,3 +30,116 @@ models:
 
       - name: nb_employeurs_total
         description: "Nombre d'établissements déclarés employeurs dans la commune."
+
+  - name: dim_region
+    description: "Dimension régions administratives françaises. Une ligne par région, dédupliquée depuis stg_emploi (seule source avec code_region). Surrogate key générée sur code_region."
+    columns:
+      - name: region_sk
+        description: "Clé surrogate de la région (generate_surrogate_key sur code_region). Clé primaire de cette dimension."
+        tests:
+          - not_null
+          - unique
+
+      - name: code_region
+        description: "Code INSEE de la région (ex : 52 pour Pays de la Loire)."
+        tests:
+          - not_null
+          - unique
+
+      - name: nom_region
+        description: "Nom officiel de la région (ex : Pays de la Loire)."
+        tests:
+          - not_null
+
+      - name: _loaded_at
+        description: "Horodatage du chargement dans le mart."
+
+  - name: dim_secteur
+    description: "Dimension secteurs d'activité économique (codes NAF). Une ligne par code NAF, dédupliquée depuis stg_communes. La famille_metier est dérivée du numéro de division INSEE (les 2 chiffres avant le point dans le code NAF)."
+    columns:
+      - name: secteur_sk
+        description: "Clé surrogate du secteur (generate_surrogate_key sur code_naf). Clé primaire de cette dimension."
+        tests:
+          - not_null
+          - unique
+
+      - name: code_naf
+        description: "Code NAF de l'activité principale de l'établissement, format XX.XXX (ex : 47.11A — Commerce de détail en supermarché)."
+        tests:
+          - not_null
+          - unique
+
+      - name: famille_metier
+        description: "Regroupement métier dérivé de la division NAF : Agriculture, Industrie manufacturière, Construction, Commerce, Transport, Hébergement & restauration, Information & communication, Finance & assurance, Immobilier, Services aux entreprises, Enseignement, Santé & action sociale, Autres."
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'Agriculture'
+                - 'Industrie manufacturière'
+                - 'Construction'
+                - 'Commerce'
+                - 'Transport'
+                - 'Hébergement & restauration'
+                - 'Information & communication'
+                - 'Finance & assurance'
+                - 'Immobilier'
+                - 'Services aux entreprises'
+                - 'Enseignement'
+                - 'Santé & action sociale'
+                - 'Autres'
+
+      - name: _loaded_at
+        description: "Horodatage du chargement dans le mart."
+
+  - name: fct_etablissements
+    description: "Table de faits centrale du schéma en étoile. Grain : commune × code NAF. Agrège les établissements SIRENE par commune et secteur d'activité, et joint dim_region (via code_region) et dim_secteur (via code_naf)."
+    columns:
+      - name: etablissement_sk
+        description: "Clé primaire surrogate de la table de faits, générée sur (code_commune, activite_principale)."
+        tests:
+          - not_null
+          - unique
+
+      - name: region_sk
+        description: "Clé étrangère vers dim_region."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_region')
+              field: region_sk
+
+      - name: secteur_sk
+        description: "Clé étrangère vers dim_secteur."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_secteur')
+              field: secteur_sk
+
+      - name: code_commune
+        description: "Code INSEE de la commune, 5 caractères."
+        tests:
+          - not_null
+
+      - name: nom_commune
+        description: "Nom de la commune."
+
+      - name: code_naf
+        description: "Code NAF de l'activité principale (clé naturelle vers dim_secteur)."
+        tests:
+          - not_null
+
+      - name: nb_etablissements
+        description: "Nombre total d'établissements pour cette commune × secteur."
+        tests:
+          - not_null
+
+      - name: nb_actifs
+        description: "Nombre d'établissements actifs (etat_administratif = 'Actif')."
+
+      - name: nb_employeurs
+        description: "Nombre d'établissements déclarés employeurs."
+
+      - name: _loaded_at
+        description: "Horodatage du chargement dans le mart."

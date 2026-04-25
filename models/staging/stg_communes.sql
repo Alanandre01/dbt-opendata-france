@@ -17,12 +17,13 @@ renamed as (
         trim("Commune de l'établissement")                      as nom_commune,
         trim("Code postal de l'établissement")                  as code_postal,
         trim("Code du département de l'établissement")          as code_departement,
+        trim("Code de la région de l'établissement")           as code_region,
         trim("Région de l'établissement")                       as nom_region,
         trim("Géolocalisation de l'établissement")              as geolocalisation,
 
         -- attributs établissement
         trim("Etat administratif de l'établissement")           as etat_administratif,
-        trim("Activité principale de l'établissement")          as activite_principale,
+        trim("Activité principale de l'unité légale")            as activite_principale,
         trim("Caractère employeur de l'établissement")          as est_employeur,
         trim("Catégorie de l'entreprise")                       as categorie_entreprise,
 

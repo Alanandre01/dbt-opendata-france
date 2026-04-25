@@ -60,6 +60,11 @@ models:
         tests:
           - not_null
 
+      - name: code_region
+        description: "Code INSEE de la région de l'établissement (ex: 52 pour Pays de la Loire)."
+        tests:
+          - not_null
+
       - name: nom_region
         description: "Nom de la région administrative de l'établissement (toujours Pays de la Loire dans ce dataset)."
         tests:
