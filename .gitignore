@@ -213,3 +213,5 @@ CLAUDE.md
 # dbt
 dbt_packages/
 target/
+*.duckdb
+*.duckdb.wal

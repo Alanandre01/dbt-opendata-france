@@ -3,6 +3,8 @@
     unique_key='emploi_id'
 ) }}
 
+{% set trimestres = [1, 2, 3, 4] %}
+
 with base as (
 
     select * from {{ ref('int_communes_enrichies') }}
@@ -44,7 +46,13 @@ final as (
         end                                         as categorie_tension_emploi,
 
         -- métadonnée de traçabilité
-        current_timestamp                           as _loaded_at
+        current_timestamp                           as _loaded_at,
+
+        -- indicateurs trimestriels (boucle Jinja — colonnes pilotées par set)
+        {% for t in trimestres %}
+        trimestre = {{ t }}                         as is_t{{ t }}
+        {{ "," if not loop.last else "" }}
+        {% endfor %}
 
     from base
     where annee is not null

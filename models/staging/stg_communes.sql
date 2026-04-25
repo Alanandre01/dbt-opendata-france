@@ -28,8 +28,8 @@ renamed as (
         trim("Catégorie de l'entreprise")                       as categorie_entreprise,
 
         -- cast des types (format source : JJ/MM/AAAA)
-        cast(try_strptime(trim("Date de création de l'établissement"),  '%d/%m/%Y') as date)  as date_creation,
-        cast(try_strptime(trim("Date de fermeture de l'établissement"), '%d/%m/%Y') as date)  as date_fermeture,
+        {{ safe_cast('try_strptime(trim("Date de création de l\'établissement"), \'%d/%m/%Y\')', 'date') }}  as date_creation,
+        {{ safe_cast('try_strptime(trim("Date de fermeture de l\'établissement"), \'%d/%m/%Y\')', 'date') }} as date_fermeture,
 
         -- métadonnées
         current_timestamp                                       as _loaded_at

@@ -9,8 +9,8 @@ renamed as (
     select
         -- période (format : AAAA-TN, ex : 2024-T4)
         "Date"                                                      as periode,
-        cast(left("Date", 4) as integer)                            as annee,
-        cast(right("Date", 1) as integer)                           as trimestre,
+        {{ safe_cast('left("Date", 4)', 'integer') }}                  as annee,
+        {{ safe_cast('right("Date", 1)', 'integer') }}               as trimestre,
 
         -- localisation
         "Code commune"                                              as code_commune,
@@ -27,7 +27,7 @@ renamed as (
         "Type de données"                                           as type_donnees,
 
         -- métrique
-        cast("Nombre de demandeurs d'emploi" as integer)            as nb_demandeurs_emploi,
+        {{ safe_cast('"Nombre de demandeurs d\'emploi"', 'integer') }} as nb_demandeurs_emploi,
 
         -- métadonnées
         current_timestamp                                           as _loaded_at
