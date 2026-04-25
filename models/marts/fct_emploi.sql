@@ -1,3 +1,8 @@
+{{ config(
+    materialized='incremental',
+    unique_key='emploi_id'
+) }}
+
 with base as (
 
     select * from {{ ref('int_communes_enrichies') }}
@@ -43,6 +48,13 @@ final as (
 
     from base
     where annee is not null
+
+    {% if is_incremental() %}
+        and annee >= (
+            select max(annee)
+            from {{ this }}
+        )
+    {% endif %}
 
 )
 
