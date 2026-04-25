@@ -2,10 +2,13 @@ version: 2
 
 models:
   - name: fct_stats_communes
-    description: "Statistiques finales par commune, matérialisées en table. Une ligne par commune, triée par volume décroissant d'établissements."
+    description: >
+      Statistiques agrégées par commune, matérialisées en table.
+      Grain : une ligne par commune, triée par volume décroissant d'établissements.
+      Source : int_communes_enrichies (toutes périodes confondues).
     columns:
       - name: nom_commune
-        description: "Nom de la commune. Clé primaire de ce modèle."
+        description: "Nom de la commune. Clé naturelle de ce modèle."
         tests:
           - not_null
           - unique
@@ -16,7 +19,7 @@ models:
           - not_null
 
       - name: code_departement
-        description: "Code INSEE du département de la commune, 2 chiffres."
+        description: "Code INSEE du département, 2 chiffres."
         tests:
           - not_null
 
@@ -26,51 +29,60 @@ models:
           - not_null
 
       - name: nb_actifs_total
-        description: "Nombre d'établissements dont l'état administratif est 'Actif' dans la commune."
+        description: "Nombre d'établissements dont l'état administratif est 'Actif'."
 
       - name: nb_employeurs_total
-        description: "Nombre d'établissements déclarés employeurs dans la commune."
+        description: "Nombre d'établissements déclarés employeurs (caractère employeur = 'Oui')."
 
   - name: dim_region
-    description: "Dimension régions administratives françaises. Une ligne par région, dédupliquée depuis stg_emploi (seule source avec code_region). Surrogate key générée sur code_region."
+    description: >
+      Référentiel des régions administratives françaises.
+      Grain : une ligne par région (18 régions métropolitaines + DOM-TOM).
+      Source : stg_emploi (seul modèle portant le code_region INSEE).
+      Déduplication sur code_region pour neutraliser les variantes orthographiques du CSV DARES.
     columns:
       - name: region_sk
-        description: "Clé surrogate de la région (generate_surrogate_key sur code_region). Clé primaire de cette dimension."
+        description: "Clé surrogate générée par dbt-utils sur code_region. Stable dans le temps."
         tests:
           - not_null
           - unique
 
       - name: code_region
-        description: "Code INSEE de la région (ex : 52 pour Pays de la Loire)."
+        description: "Code officiel INSEE de la région (ex : 52 pour Pays de la Loire)."
         tests:
           - not_null
           - unique
 
       - name: nom_region
-        description: "Nom officiel de la région (ex : Pays de la Loire)."
+        description: "Libellé officiel de la région (ex : Pays de la Loire)."
         tests:
           - not_null
 
       - name: _loaded_at
-        description: "Horodatage du chargement dans le mart."
+        description: "Horodatage du chargement dbt (current_timestamp au moment de l'exécution)."
 
   - name: dim_secteur
-    description: "Dimension secteurs d'activité économique (codes NAF). Une ligne par code NAF, dédupliquée depuis stg_communes. La famille_metier est dérivée du numéro de division INSEE (les 2 chiffres avant le point dans le code NAF)."
+    description: >
+      Référentiel des secteurs d'activité économique (codes NAF).
+      Grain : une ligne par code NAF présent dans la base SIRENE Nantes.
+      Source : stg_communes (activite_principale de l'unité légale).
+      La famille_metier regroupe les 700+ codes NAF en 13 grandes familles métier
+      dérivées du numéro de division INSEE (2 chiffres avant le point du code NAF).
     columns:
       - name: secteur_sk
-        description: "Clé surrogate du secteur (generate_surrogate_key sur code_naf). Clé primaire de cette dimension."
+        description: "Clé surrogate générée par dbt-utils sur code_naf."
         tests:
           - not_null
           - unique
 
       - name: code_naf
-        description: "Code NAF de l'activité principale de l'établissement, format XX.XXX (ex : 47.11A — Commerce de détail en supermarché)."
+        description: "Code d'activité principale au format XX.XXXX (ex : 47.11A — Commerce de détail en supermarché)."
         tests:
           - not_null
           - unique
 
       - name: famille_metier
-        description: "Regroupement métier dérivé de la division NAF : Agriculture, Industrie manufacturière, Construction, Commerce, Transport, Hébergement & restauration, Information & communication, Finance & assurance, Immobilier, Services aux entreprises, Enseignement, Santé & action sociale, Autres."
+        description: "Regroupement en 13 familles dérivé du numéro de division INSEE (2 chiffres avant le point du code NAF)."
         tests:
           - not_null
           - accepted_values:
@@ -90,19 +102,23 @@ models:
                 - 'Autres'
 
       - name: _loaded_at
-        description: "Horodatage du chargement dans le mart."
+        description: "Horodatage du chargement dbt."
 
   - name: fct_etablissements
-    description: "Table de faits centrale du schéma en étoile. Grain : commune × code NAF. Agrège les établissements SIRENE par commune et secteur d'activité, et joint dim_region (via code_region) et dim_secteur (via code_naf)."
+    description: >
+      Table de faits centrale du schéma en étoile.
+      Grain : une ligne par (commune × code NAF).
+      Source : stg_communes agrégé par (code_commune, activite_principale).
+      Jointe avec dim_region (via code_region) et dim_secteur (via code_naf) sur les clés naturelles.
     columns:
       - name: etablissement_sk
-        description: "Clé primaire surrogate de la table de faits, générée sur (code_commune, activite_principale)."
+        description: "Clé primaire surrogate générée sur (code_commune, activite_principale)."
         tests:
           - not_null
           - unique
 
       - name: region_sk
-        description: "Clé étrangère vers dim_region."
+        description: "Clé étrangère vers dim_region. Copiée depuis la dimension — ne pas recalculer le hash."
         tests:
           - not_null
           - relationships:
@@ -110,7 +126,7 @@ models:
               field: region_sk
 
       - name: secteur_sk
-        description: "Clé étrangère vers dim_secteur."
+        description: "Clé étrangère vers dim_secteur. Copiée depuis la dimension — ne pas recalculer le hash."
         tests:
           - not_null
           - relationships:
@@ -118,28 +134,121 @@ models:
               field: secteur_sk
 
       - name: code_commune
-        description: "Code INSEE de la commune, 5 caractères."
+        description: "Code INSEE de la commune, 5 caractères (ex : 44109 pour Nantes)."
         tests:
           - not_null
 
       - name: nom_commune
-        description: "Nom de la commune."
+        description: "Nom de la commune tel qu'il figure dans la base SIRENE."
 
       - name: code_naf
-        description: "Code NAF de l'activité principale (clé naturelle vers dim_secteur)."
+        description: "Code NAF de l'activité principale — clé naturelle vers dim_secteur."
         tests:
           - not_null
 
       - name: nb_etablissements
-        description: "Nombre total d'établissements pour cette commune × secteur."
+        description: "Nombre total d'établissements pour ce couple commune × secteur."
         tests:
           - not_null
 
       - name: nb_actifs
-        description: "Nombre d'établissements actifs (etat_administratif = 'Actif')."
+        description: "Sous-ensemble de nb_etablissements dont l'état administratif est 'Actif'."
 
       - name: nb_employeurs
-        description: "Nombre d'établissements déclarés employeurs."
+        description: "Sous-ensemble de nb_etablissements déclarés employeurs (caractère employeur = 'Oui')."
 
       - name: _loaded_at
-        description: "Horodatage du chargement dans le mart."
+        description: "Horodatage du chargement dbt."
+
+  - name: fct_emploi
+    description: >
+      Table de faits incrémentale — demandeurs d'emploi (DEFM) par commune et par trimestre.
+      Grain : une ligne par (commune × période trimestrielle).
+      Source : int_communes_enrichies, lui-même issu de la jointure SIRENE × DARES DEFM
+      filtrée sur sexe=Total et tranche_age=Total (catégorie ABC, données brutes).
+      Matérialisée en incremental — relancer avec --full-refresh pour reconstruire entièrement.
+    columns:
+      - name: emploi_id
+        description: "Clé primaire surrogate générée sur (code_commune, periode)."
+        tests:
+          - not_null
+          - unique
+
+      - name: code_commune
+        description: "Code INSEE de la commune, 5 caractères."
+        tests:
+          - not_null
+
+      - name: code_departement
+        description: "Code INSEE du département, 2 caractères."
+        tests:
+          - not_null
+
+      - name: nom_commune
+        description: "Nom de la commune tel qu'il figure dans la source DARES."
+
+      - name: nom_region
+        description: "Nom de la région administrative de la commune."
+
+      - name: categorie_economique
+        description: >
+          Classification du tissu économique local selon le nombre d'établissements SIRENE :
+          pôle économique (>1000), commune active (>200), commune intermédiaire (>50), petite commune.
+
+      - name: periode
+        description: "Période trimestrielle au format AAAA-TN (ex : 2023-T3)."
+        tests:
+          - not_null
+
+      - name: annee
+        description: "Année extraite de la période (entier, ex : 2023)."
+        tests:
+          - not_null
+
+      - name: trimestre
+        description: "Numéro du trimestre, valeur 1 à 4."
+        tests:
+          - not_null
+
+      - name: nb_etablissements
+        description: "Nombre total d'établissements dans la commune (snapshot SIRENE au moment de l'extraction)."
+
+      - name: nb_actifs
+        description: "Nombre d'établissements actifs dans la commune."
+
+      - name: nb_employeurs
+        description: "Nombre d'établissements déclarés employeurs dans la commune."
+
+      - name: nb_demandeurs_emploi
+        description: "Nombre de demandeurs d'emploi catégorie ABC en fin de mois, données brutes non désaisonnalisées (source DARES)."
+        tests:
+          - not_null
+
+      - name: taux_demandeurs_pour_cent
+        description: "Ratio nb_demandeurs_emploi / nb_etablissements × 100. Indicateur de tension du marché local, calculé dans int_communes_enrichies."
+
+      - name: categorie_tension_emploi
+        description: "Catégorisation de la tension du marché local : faible (<10 %), moyen (<25 %), élevé (≥25 %), inconnu si taux null."
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'faible'
+                - 'moyen'
+                - 'élevé'
+                - 'inconnu'
+
+      - name: _loaded_at
+        description: "Horodatage du chargement dbt."
+
+      - name: is_t1
+        description: "Vrai si la période est un T1. Généré par boucle Jinja — ajouter une valeur à la liste trimestres dans fct_emploi.sql suffit pour créer une nouvelle colonne."
+
+      - name: is_t2
+        description: "Vrai si la période est un T2."
+
+      - name: is_t3
+        description: "Vrai si la période est un T3."
+
+      - name: is_t4
+        description: "Vrai si la période est un T4."
