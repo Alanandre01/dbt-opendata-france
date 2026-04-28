@@ -10,7 +10,7 @@ Personal learning project to practice dbt Core concepts: sources, staging, inter
 | **Base SIRENE** | Official French business registry ([data.gouv.fr](https://www.data.gouv.fr)) | ~420,000 establishments, Nantes metropolitan area |
 | **DARES DEFM** | Monthly job seekers by commune ([data.gouv.fr](https://www.data.gouv.fr)) | All France, Q4 2015 → Q4 2024 |
 
-Both CSVs are read directly by DuckDB via `read_csv_auto` — they are not loaded as dbt seeds.
+Both CSVs are read directly by DuckDB via `read_csv_auto` - they are not loaded as dbt seeds.
 
 ## Stack
 
@@ -79,7 +79,7 @@ dbt docs generate && dbt docs serve
 
 ## Data quality tests
 
-**Generic tests (schema.yml)** — 65 tests across all layers
+**Generic tests (schema.yml)** - 65 tests across all layers
 - `not_null` on all key columns
 - `unique` on primary and surrogate keys
 - `accepted_values` on categorical columns:
@@ -93,11 +93,11 @@ dbt docs generate && dbt docs serve
   - `fct_etablissements.region_sk` → `dim_region.region_sk`
   - `fct_etablissements.secteur_sk` → `dim_secteur.secteur_sk`
 
-**Singular tests (tests/)** — 4 custom tests
-- `assert_identifiants_format.sql` — validates identifier lengths (SIRET=14, SIREN=9, NIC=5, code_commune=5)
-- `assert_metriques_positives.sql` — checks metric coherence (no negatives, nb_actifs ≤ nb_etablissements)
-- `assert_coherence_metier.sql` — checks nb_employeurs ≤ nb_etablissements and nb_actifs ≤ nb_etablissements in fct_etablissements
-- `assert_no_future_dates.sql` — checks that no period in fct_emploi is in the future
+**Singular tests (tests/)** - 4 custom tests
+- `assert_identifiants_format.sql` - validates identifier lengths (SIRET=14, SIREN=9, NIC=5, code_commune=5)
+- `assert_metriques_positives.sql` - checks metric coherence (no negatives, nb_actifs ≤ nb_etablissements)
+- `assert_coherence_metier.sql` - checks nb_employeurs ≤ nb_etablissements and nb_actifs ≤ nb_etablissements in fct_etablissements
+- `assert_no_future_dates.sql` - checks that no period in fct_emploi is in the future
 
 ## Project structure
 
